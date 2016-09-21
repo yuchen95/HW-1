@@ -6,4 +6,4 @@
 *.html
 *_cache/*
 *_files/*
-/rsconnect
+/rsconnect/*
