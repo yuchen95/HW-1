@@ -11,8 +11,6 @@ Learning Goals
 Homework
 --------
 
-This process will be the same for all homeworks and the final project.
-
 1.  Once you're finished, submit your homework following the same steps as in <a
     target="_blank" class="page-link"
     href="https://github.com/2016-09-Middlebury-Data-Science/HW-0#homework">HW-0</a>. Note that at the end of Step 4, you do not need to type `git push` from the console, but rather can click the *Push* button.
