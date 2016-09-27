@@ -39,7 +39,7 @@ Please indicate
 
 * Who you collaborated with: 
 * Roughly how much time you spent on this HW so far: 10
-* The URL of the RPubs published URL [here](https://www.nhl.com/).
+* The URL of the RPubs published URL [here](http://rpubs.com/ZhuYuchen/HW-1-1/).
 * What gave you the most trouble: ggplot formatting, geom_bar/histogram, tally 
 * Any comments you have: 
 
@@ -166,8 +166,7 @@ aircraft_age <- left_join(planes,  flights, by = "plane") %>%
   group_by(carrier)
 
 # Graph
-p_age <- ggplot(aircraft_age, 
-                aes(x = reorder(carrier, desc(age)), y = age))
+p_age <- ggplot(aircraft_age, aes(x = reorder(carrier, desc(age)), y = age))
 p_age +
   geom_boxplot() +
   labs(title = "Age of flights by carrier: Boxplot", x = "Carrier",
@@ -201,7 +200,7 @@ dest_WN_path <- flights %>%
   select(flight, dest, state) %>% 
   # ECP airport in Florida is not included in airports dataset
   replace(., is.na(.), "FL") %>% 
-  # different flight number but same destination -> one flight path?
+  # Different flight number but same destination -> one flight path?
   group_by(flight, dest, state) %>% 
   tally() %>% 
   select(flight, state) %>% 
@@ -210,8 +209,7 @@ dest_WN_path <- flights %>%
   rename(path = n) %>% 
   mutate(prop = round(path/sum(path), 3))
 
-ggplot(data=dest_WN_path, 
-       aes(x = reorder(state, desc(path)), y = prop)) +
+ggplot(data=dest_WN_path, aes(x = reorder(state, desc(path)), y = prop)) +
   geom_bar(stat = "identity") +
   labs(x = "Proportion of flight path", y = "State")
 ```
