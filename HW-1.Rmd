@@ -241,7 +241,6 @@ Proportion gives a more clear idea of what states Southwest Airlines' **flights*
 
 Looking at the differences between the 2 graphs above, we can conclude that flight paths in Texas have more frequent flights than other flight paths.
 
-
 ## Question 4:
 
 I want to know proportionately what regions (NE, south, west, midwest) each 
