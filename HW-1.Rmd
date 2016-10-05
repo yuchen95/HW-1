@@ -38,7 +38,7 @@ states <- read_csv("data/states.csv")
 Please indicate
 
 * Who you collaborated with: 
-* Roughly how much time you spent on this HW so far: 10
+* Roughly how much time you spent on this HW so far: 11
 * The URL of the RPubs published URL [here](http://rpubs.com/ZhuYuchen/HW-1-1/).
 * What gave you the most trouble: ggplot formatting, geom_bar/histogram, tally 
 * Any comments you have: 
@@ -93,7 +93,20 @@ p_day +
        x = "Date", y = "Proportion")
 ```
 
-In this graph, we observe a trend where more flights tend to be delayed during the summer and winter. However, there are also many outliers. In order to address the outliers, we can creat a side-by-side boxplot as following:
+In this graph, we observe a trend where more flights tend to be delayed during the summer and winter. However, there are also many outliers. In order to address the outliers, we dedicate more room to where most of our points are as following:
+
+```{r, echo=FALSE, message=FALSE, fig.width=12, fig.height=6}
+p_day +
+  geom_point() +
+  geom_smooth() +
+  # dedicate more y-axis room to where the majority of points are
+  coord_cartesian(ylim=c(0, 0.2)) +
+  labs(title = 
+         "Proportion of delays (>30 min) each day: Scatter-point", 
+       x = "Date", y = "Proportion")
+```
+
+This boxplot shows the distribution of delays for each month.
 
 ```{r, echo=FALSE, message=FALSE, fig.width=12, fig.height=6}
 prop_delays_per_day <- prop_delays_per_day %>% 
@@ -102,46 +115,13 @@ prop_delays_per_day <- prop_delays_per_day %>%
 p_day <- ggplot(data=prop_delays_per_day, aes(x=month, y=prop_delays, group=month))
 p_day +
   geom_boxplot() +
+  # dedicate more y-axis room to where the majority of points are
+  coord_cartesian(ylim=c(0, 0.2)) +
   labs(title = "Proportion of delays (>30 min) each month: Boxplot"
        , x = "Month", y = "Proportion")
 ```
 
-The trend is still not as obvious because of the outliers. Since we are interested in seasonality, which is a concept associated with wider time range, we can take the average of each month's proportion of delayed flights:
-
-```{r, echo=FALSE, message=FALSE, fig.width=12, fig.height=6}
-# The number of flights departing from Houston each month in 2011
-flights_per_month <- flights %>% 
-  mutate(month = month(date)) %>% 
-  group_by(month) %>% 
-  tally() %>% 
-  rename(num_flights = n)
-
-# The number of flights delayed over 30 minutes each month in 2011
-delays_per_month <- flights %>%
-  mutate(month = month(date)) %>% 
-  filter(dep_delay > 30) %>% 
-  group_by(month) %>% 
-  tally() %>% 
-  rename(num_delays = n)
-
-# Proportion 
-prop_delays_per_month <- 
-  left_join(flights_per_month, delays_per_month, by = "month") %>% 
-  mutate(prop_delays = round(num_delays/num_flights,3)) %>% 
-  select(month, prop_delays)
-
-# Graph
-p_month <- ggplot(data=prop_delays_per_month, aes(x=month, y=prop_delays))
-
-# Line
-p_month +
-  geom_line() + 
-  geom_smooth() +
-  labs(title = "Proportion of delays (>30 min) each month: Mean", 
-       x = "Month", y = "Proportion")
-```
-
-Clearly, the proportion of flight delays peaks in the summer and winter.
+Although the trend was not as obvious because of the outliers, it became much more clear after we zoom in on where most delays occur. The proportion of flight delays peaks in the summer and winter.
 
 
 
@@ -166,7 +146,7 @@ aircraft_age <- left_join(planes,  flights, by = "plane") %>%
   group_by(carrier)
 
 # Graph
-p_age <- ggplot(aircraft_age, aes(x = reorder(carrier, desc(age)), y = age))
+p_age <- ggplot(aircraft_age, aes(x = reorder(carrier, desc(age), median), y = age)) # reorder by median
 p_age +
   geom_boxplot() +
   labs(title = "Age of flights by carrier: Boxplot", x = "Carrier",
@@ -175,7 +155,18 @@ p_age +
 
 According to the plot, MQ, AA, DL, US, UA, and WN tend to have older flights.
 
+Although MQ is the oldest, it seems that the sample size is quite small. Take a look of the number of flights each carrier operates from Houston:
 
+```{r, echo=FALSE, fig.width=12, fig.height=6}
+# Account number of flights each airline has
+p_size <- ggplot(aircraft_age, aes(x = reorder(carrier, desc(age), median)))
+p_size +
+  geom_bar() +
+  labs(title = "Number of flights: Barplot", x = "Carrier",
+      y = "Count")
+```
+
+Even if we know that MQ is the oldest, a passenger might still not be able to fly it often because it doesn't fly that often from Houston.
 
 ## Question 3:
 
@@ -211,7 +202,7 @@ dest_WN_path <- flights %>%
 
 ggplot(data=dest_WN_path, aes(x = reorder(state, desc(path)), y = prop)) +
   geom_bar(stat = "identity") +
-  labs(x = "Proportion of flight path", y = "State")
+  labs(x = "State", y = "Proportion of flight path")
 ```
 
 Proportion gives a more clear idea of what states Southwest Airlines' **flight paths** tend to fly to, which includes TX, FL, LA, CA.
@@ -234,7 +225,7 @@ dest_WN <- flights %>%
 
 ggplot(data=dest_WN, aes(x = reorder(state, desc(prop)), y=prop)) +
   geom_bar(stat = "identity") +
-  labs(x = "Proportion of flights", y = "State")
+  labs(x = "State", y = "Proportion of flights")
 ```
 
 Proportion gives a more clear idea of what states Southwest Airlines' **flights** tend to fly to, which inlcludes TX, FL, LA, CA.
@@ -277,7 +268,7 @@ carrier_total <- carrier_region %>%
 
 prop_carrier_region <- 
   left_join(carrier_region, carrier_total, by = "carrier" ) %>%
-  mutate(prop=round(num_flight/total, 3))
+  mutate(prop= num_flight/total)
   
 
   
