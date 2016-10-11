@@ -17,6 +17,7 @@ library(dplyr)
 # For read_csv() command, which is an improved version of base R's read.csv()
 library(readr) 
 library(lubridate)
+library(knitr)
 
 # Load data sets. Note this assumes this .Rmd files is in the same directory as
 # the .csv files.
@@ -26,7 +27,7 @@ weather <- read_csv("data/weather.csv") %>%
   mutate(date=as.Date(date))
 planes <- read_csv("data/planes.csv")
 airports <- read_csv("data/airports.csv")
-states <- read_csv("data/states.csv")
+states <- read_csv("data/states.csv")  
 ```
 
 
@@ -78,7 +79,7 @@ delays_per_day <- flights %>%
 # Proportion 
 prop_delays_per_day <- 
   left_join(flights_per_day, delays_per_day, by = "date") %>% 
-  mutate(prop_delays = round(num_delays/num_flights,3)) %>% 
+  mutate(prop_delays = num_delays/num_flights) %>% 
   select(date, prop_delays)
 
 # Graph
@@ -187,10 +188,10 @@ By grouping the modified dataset by flight number, destination, and state and us
 dest_WN_path <- flights %>% 
   filter(carrier=="WN") %>%
   select(flight, dest) %>% 
-  left_join(., airports, by = c("dest"="iata")) %>% 
+  left_join(airports, by = c("dest"="iata")) %>% 
   select(flight, dest, state) %>% 
   # ECP airport in Florida is not included in airports dataset
-  replace(., is.na(.), "FL") %>% 
+  replace(is.na(.), "FL") %>% 
   # Different flight number but same destination -> one flight path?
   group_by(flight, dest, state) %>% 
   tally() %>% 
@@ -198,14 +199,14 @@ dest_WN_path <- flights %>%
   group_by(state) %>% 
   tally() %>% 
   rename(path = n) %>% 
-  mutate(prop = round(path/sum(path), 3))
+  mutate(prop = path/sum(path))
 
 ggplot(data=dest_WN_path, aes(x = reorder(state, desc(path)), y = prop)) +
   geom_bar(stat = "identity") +
   labs(x = "State", y = "Proportion of flight path")
 ```
 
-Proportion gives a more clear idea of what states Southwest Airlines' **flight paths** tend to fly to, which includes TX, FL, LA, CA.
+There are 3030 flight paths. Proportion gives a more clear idea of what states Southwest Airlines' **flight paths** tend to fly to, which includes TX, FL, LA, CA.
 
 As for **flights**, instead of looking at different unique destinaitons for each flight number, we are interested in how many of Southwest Airlines flights fly to each state from Houston. Therefore, we group the dataset (after adding back missing values "FL") and use tally to see how many flights fly to each state.
 
@@ -214,21 +215,21 @@ As for **flights**, instead of looking at different unique destinaitons for each
 dest_WN <- flights %>% 
   filter(carrier=="WN") %>%
   select(flight, dest) %>% 
-  left_join(., airports, by = c("dest"="iata")) %>% 
+  left_join(airports, by = c("dest"="iata")) %>% 
   select(flight, dest, state) %>% 
   # ECP airport in Florida is not included in airports dataset
-  replace(., is.na(.), "FL") %>% 
+  replace(is.na(.), "FL") %>% 
   group_by(state) %>% 
   tally() %>% 
   rename(num_flight = n) %>% 
-  mutate(prop = round(num_flight/sum(num_flight), 3))
+  mutate(prop = num_flight/sum(num_flight))
 
 ggplot(data=dest_WN, aes(x = reorder(state, desc(prop)), y=prop)) +
   geom_bar(stat = "identity") +
   labs(x = "State", y = "Proportion of flights")
 ```
 
-Proportion gives a more clear idea of what states Southwest Airlines' **flights** tend to fly to, which inlcludes TX, FL, LA, CA.
+There are 45343 flights. Proportion gives a more clear idea of what states Southwest Airlines' **flights** tend to fly to, which inlcludes TX, FL, LA, CA.
 
 Looking at the differences between the 2 graphs above, we can conclude that flight paths in Texas have more frequent flights than other flight paths.
 
@@ -245,11 +246,11 @@ After inspecting the modified dataset with is.na to find missing values, we find
 
 In order to show that, we build a bar chart for each airline where each bar reflects the proportion of flights going to one of the regions.
 
-```{r, echo=FALSE, message=FALSE, fig.width=12, fig.height=6}
+```{r, echo=FALSE, message=FALSE, fig.width=12, fig.height=10}
 carrier_region <- flights %>% 
   filter(month(date)==7) %>% 
-  left_join(., airports, by = c("dest"="iata")) %>% 
-  left_join(., states, by = "state") %>% 
+  left_join(airports, by = c("dest"="iata")) %>% 
+  left_join(states, by = "state") %>% 
   select(carrier, state, dest, region) %>% 
   # filter(is.na(region))
   # ECP in FL, BKG in MO, which are in the south
@@ -282,4 +283,11 @@ p_carrier_region +
   facet_wrap(~carrier, scales="free_y", nrow=5) +
   labs(title = "Proportion of flights to each region", 
        x = "Region", y = "Proportion")
+
+num_flights_carrier <- carrier_region %>% 
+  group_by(carrier) %>% 
+  summarise(num_flights = sum(num_flight))
+
+num_flights_carrier %>% 
+  kable(caption = "Total Number of Flights for Each Carrier")
 ```
